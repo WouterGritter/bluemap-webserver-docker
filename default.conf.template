@@ -1,0 +1,33 @@
+server {
+    listen [::]:8080 default_server;
+    listen 8080 default_server;
+    server_name _;
+
+    # path to bluemap-webroot, BlueMap can also be used in a sub-folder .. just adapt the paths accordingly
+    root /var/www/html;
+
+    location / {
+        try_files $uri /sql.php;
+    }
+
+    # Pass the PHP scripts to PHP-FPM listening on php-fpm.sock
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/run/php-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+
+    location = /settings.json {
+        proxy_pass http://${BLUEMAP_PROXY_TARGET};
+    }
+
+    # OPTIONAL:
+    # Proxy requests to the live data interface of each map to bluemaps integrated webserver
+    # If you have multiple servers you will need to proxy each map-id to the correct server
+    location ~* /(maps/[^/\s]*/live/.*) {
+        proxy_pass http://${BLUEMAP_PROXY_TARGET}/$1;
+    }
+}

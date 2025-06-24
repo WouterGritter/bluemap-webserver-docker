@@ -1,0 +1,19 @@
+services:
+  bluemap-web:
+    build: .
+    environment:
+      DB_HOSTNAME: bluemap-db
+      DB_PASSWORD: ${DB_ROOT_PASSWORD}
+      BLUEMAP_PROXY_TARGET: ${BLUEMAP_PROXY_TARGET}
+    ports:
+      - "8888:8080"
+  bluemap-db:
+    image: mariadb:latest
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: "bluemap"
+    volumes:
+      - ./db:/var/lib/mysql
+    ports:
+      - "100.64.0.2:33060:3306"
